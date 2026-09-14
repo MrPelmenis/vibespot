@@ -1,0 +1,356 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CoolSpot design tokens.
+
+   Two themes, one token per role. Edit the values HERE and nowhere else — never
+   hard-code a hex, a font name or a px value that a token already carries.
+
+   Dark values come from the design mockup's effective theme; light values come
+   from the "Organic" design system, with its muted text darkened until it passes
+   WCAG AA (the mockup's #9aa0a6 on #202124 fails).
+
+   `@theme inline` maps these to Tailwind utility names, so `bg-surface`,
+   `text-muted`, `border-line`, `bg-accent`, `text-accent-fg`, `rounded-lg`,
+   `font-heading` etc. all work.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Surfaces */
+  --bg: #f5ead8;
+  --surface: #ebddc5;
+  --surface-2: #dcd3c4;
+  --overlay: rgba(32, 30, 29, 0.45);
+
+  /* Content */
+  --text: #201e1d;
+  --muted: #5b5346; /* darkened from Organic's neutral-600 for AA contrast */
+  --faint: #827a6a;
+
+  /* Lines */
+  --line: rgba(32, 30, 29, 0.16);
+  --line-strong: rgba(32, 30, 29, 0.28);
+
+  /* Accent — terracotta (Organic) */
+  --accent: #c67139;
+  --accent-hover: #b2622d;
+  --accent-active: #8c491a;
+  --accent-fg: #fff2eb; /* text on an accent fill */
+  --accent-tint: rgba(198, 113, 57, 0.14);
+
+  /* Accent 2 — sage (Organic) */
+  --accent-2: #7a8a5e;
+  --accent-2-fg: #f0fae1;
+  --accent-2-tint: rgba(122, 138, 94, 0.16);
+
+  /* Semantic */
+  --danger: #b3392f;
+  --danger-fg: #fff2eb;
+  --warning: #b07d10;
+  --success: #4f6b3a;
+  --star: #c8891b;
+}
+
+.dark {
+  /* Surfaces — from the mockup's inline theme override */
+  --bg: #202124;
+  --surface: #28282b;
+  --surface-2: #323236;
+  --overlay: rgba(0, 0, 0, 0.55);
+
+  /* Content */
+  --text: #e8eaed;
+  --muted: #b8bcc2; /* mockup's neutral-700; passes AA on #202124 */
+  --faint: #9aa0a6; /* mockup's neutral-600 — large text / icons only */
+
+  /* Lines */
+  --line: rgba(232, 234, 237, 0.12);
+  --line-strong: rgba(232, 234, 237, 0.24);
+
+  /* Accent — mockup blue */
+  --accent: #1ca4de;
+  --accent-hover: #4db8e8;
+  --accent-active: #7dd3fc;
+  --accent-fg: #062233; /* dark text on a bright accent fill */
+  --accent-tint: rgba(28, 164, 222, 0.14);
+
+  /* Accent 2 — mockup green */
+  --accent-2: #2dbd86;
+  --accent-2-fg: #0d2b20;
+  --accent-2-tint: rgba(45, 189, 134, 0.16);
+
+  /* Semantic */
+  --danger: #e0524a;
+  --danger-fg: #2c0a08;
+  --warning: #dea11c;
+  --success: #2dbd86;
+  --star: #dea11c;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-overlay: var(--overlay);
+
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-tint: var(--accent-tint);
+
+  --color-accent-2: var(--accent-2);
+  --color-accent-2-fg: var(--accent-2-fg);
+  --color-accent-2-tint: var(--accent-2-tint);
+
+  --color-danger: var(--danger);
+  --color-danger-fg: var(--danger-fg);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
+  --color-star: var(--star);
+
+  /* Radii — 8 / 16 / 28, plus pills via rounded-full */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+
+  /* Elevation — per-theme values via the same variable names */
+  --shadow-sm: var(--elev-sm);
+  --shadow-md: var(--elev-md);
+  --shadow-lg: var(--elev-lg);
+
+  --font-heading: var(--font-poppins), system-ui, sans-serif;
+  --font-body: var(--font-poppins), system-ui, sans-serif;
+
+  /* Motion — the mockup's easing */
+  --ease-sheet: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  --elev-sm: 0 1px 2px rgba(46, 43, 37, 0.14);
+  --elev-md: 0 3px 10px rgba(46, 43, 37, 0.16);
+  --elev-lg: 0 12px 32px rgba(46, 43, 37, 0.22);
+}
+
+.dark {
+  --elev-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --elev-md: 0 8px 20px rgba(0, 0, 0, 0.4);
+  --elev-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Dark mode is driven by a class on <html>, not only by the OS preference — the
+   user must be able to override it. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Base ──────────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Stop the iOS rubber-band flash of white behind the page. */
+  background-color: var(--bg);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.55;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+/* States are part of the design system — never leave browser defaults. */
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+::selection {
+  background: var(--accent-tint);
+}
+
+/* Respect users who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Shared utilities ──────────────────────────────────────────────────────── */
+
+/* Photographs sit back into the page rather than on top of it. */
+.washed {
+  filter: saturate(0.6) contrast(0.85) brightness(1.1) opacity(0.94);
+}
+
+@keyframes cs-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes cs-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes cs-modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: cs-fade-in 0.18s ease-out;
+}
+.animate-sheet-up {
+  animation: cs-sheet-up 0.32s var(--ease-sheet);
+}
+.animate-modal-in {
+  animation: cs-modal-in 0.22s var(--ease-sheet);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ── Map (Leaflet) ──────────────────────────────────────────────────────────── */
+
+.cs-popup-img {
+  display: block;
+  width: 100%;
+  height: 88px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+}
+.cs-popup-title {
+  display: block;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  text-decoration: none;
+}
+.cs-popup-title:hover {
+  color: var(--accent);
+}
+.cs-popup-cat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.cs-popup-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+.cs-popup-by {
+  color: var(--accent);
+  text-decoration: none;
+}
+.cs-popup-by:hover {
+  text-decoration: underline;
+}
+
+/* Circular category pin (Leaflet). Colour is set inline from the category data. */
+.cs-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+}
+.cs-pin--accent {
+  background-color: var(--accent);
+}
+
+/* User's live location dot. */
+.cs-user-dot {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: #1ca4de;
+  box-shadow: 0 0 0 2px rgba(28, 164, 222, 0.4), 0 1px 5px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+}
+
+/* Leaflet popups follow the active theme's tokens. */
+.leaflet-popup-content-wrapper {
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+.leaflet-popup-content {
+  margin: 10px 12px;
+  line-height: 1.4;
+}
+.leaflet-popup-tip {
+  background: var(--surface);
+}

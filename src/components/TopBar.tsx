@@ -30,9 +30,9 @@ export function TopBar({ nickname }: { nickname?: string | null }) {
         <img
           src="/marker.png"
           alt=""
-          width={22}
-          height={22}
-          className="h-[22px] w-[22px] object-contain"
+          width={32}
+          height={32}
+          className="h-8 w-8 shrink-0 object-contain"
         />
       </Link>
 

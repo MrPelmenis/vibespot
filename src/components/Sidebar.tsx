@@ -24,9 +24,9 @@ export function Sidebar({ authSlot }: { authSlot?: React.ReactNode }) {
         <img
           src="/marker.png"
           alt=""
-          width={26}
-          height={26}
-          className="h-[26px] w-[26px] object-contain"
+          width={40}
+          height={40}
+          className="h-10 w-10 shrink-0 object-contain"
         />
         <span className="font-heading text-[22px] leading-none text-text">CoolSpot</span>
       </Link>

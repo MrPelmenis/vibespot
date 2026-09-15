@@ -5,6 +5,7 @@ import { ExternalLink, Map as MapIcon, Pencil } from "lucide-react";
 import { CategoryChip } from "@/components/CategoryChip";
 import { SortLink } from "@/components/FilterChips";
 import { MediaGallery, MediaViewerProvider } from "@/components/MediaGallery";
+import { ReportButton } from "@/components/ReportButton";
 import { StarRating } from "@/components/StarRating";
 import { ButtonLink } from "@/components/ui/Button";
 import { DistributionBar } from "@/components/reviews/DistributionBar";
@@ -229,7 +230,12 @@ export default async function SpotPage({
         ) : (
           <ul className="mt-3 flex flex-col gap-2.5">
             {reviews.map((review) => (
-              <ReviewItem key={review.id} review={review} isSignedIn={isSignedIn} />
+              <ReviewItem
+                key={review.id}
+                review={review}
+                isSignedIn={isSignedIn}
+                isAdmin={session?.isAdmin === true}
+              />
             ))}
           </ul>
         )}
@@ -268,6 +274,7 @@ export default async function SpotPage({
             Edit this spot
           </ButtonLink>
         ) : null}
+        <ReportButton targetType="spot" targetId={spot.id} />
       </footer>
       </MediaViewerProvider>
     </article>

@@ -267,6 +267,7 @@ export async function deleteAccount(userId: number): Promise<void> {
     await client.query(
       `UPDATE users SET
          is_deleted = true,
+         google_sub = 'deleted-sub-' || $1,
          email = 'deleted-' || $1 || '@coolspot.invalid',
          nickname = 'deleted-user-' || $1,
          description = NULL,

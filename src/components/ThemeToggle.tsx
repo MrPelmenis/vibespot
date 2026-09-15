@@ -1,74 +1,53 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
-import { Monitor, Moon, Sun } from "lucide-react";
-import { THEME_STORAGE_KEY, type ThemeChoice } from "@/lib/theme";
-
-const LABELS: Record<ThemeChoice, string> = {
-  system: "Theme: follow system",
-  light: "Theme: light",
-  dark: "Theme: dark",
-};
+import { Moon, Sun } from "lucide-react";
+import { THEME_STORAGE_KEY } from "@/lib/theme";
 
 function subscribe(onChange: () => void) {
-  // Re-read when the stored preference changes from this or another tab.
+  // Re-read when the stored preference changes, from this or another tab.
   window.addEventListener("storage", onChange);
   window.addEventListener("coolspot-theme-change", onChange);
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  mq.addEventListener("change", onChange);
   return () => {
     window.removeEventListener("storage", onChange);
     window.removeEventListener("coolspot-theme-change", onChange);
+    mq.removeEventListener("change", onChange);
   };
 }
 
-function readStored(): ThemeChoice {
-  const stored = localStorage.getItem(THEME_STORAGE_KEY);
-  return stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
-}
-
-function apply(choice: ThemeChoice) {
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const dark = choice === "dark" || (choice === "system" && prefersDark);
-  document.documentElement.classList.toggle("dark", dark);
-  document.documentElement.style.colorScheme = dark ? "dark" : "light";
+/** The *visible* theme — reads the class the boot script already applied, so the icon
+ *  always matches reality and there is no confusing "system" (PC) state to show. */
+function readIsDark(): boolean {
+  return document.documentElement.classList.contains("dark");
 }
 
 /**
- * Cycles system → light → dark.
- *
- * The stored choice is read through `useSyncExternalStore` rather than copied into
- * state from an effect: it is already an external store, and this reads it without a
- * cascading render or a hydration mismatch. The pre-paint script in `lib/theme.ts` has
- * already applied the theme by the time this runs, so there is no flash either way.
+ * A plain light/dark toggle. The stored value may still be "system" from before, but
+ * the toggle always lands on an explicit light/dark — the icon simply reflects what is
+ * currently on screen.
  */
 export function ThemeToggle({ className }: { className?: string }) {
-  const choice = useSyncExternalStore(
-    subscribe,
-    readStored,
-    () => "system" as ThemeChoice, // server snapshot: must match the first client render
-  );
+  const isDark = useSyncExternalStore(subscribe, readIsDark, () => false);
 
-  // Always flip to the opposite of what is *currently visible*. "system" is only the
-  // first-visit default — once clicked, the choice becomes an explicit light/dark, so
-  // every click visibly changes the theme. (The old three-way cycle's first step,
-  // system → light, looked like a no-op when the OS was already light.)
-  const cycle = useCallback(() => {
-    const current = readStored();
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const currentlyDark = current === "dark" || (current === "system" && prefersDark);
-    const next: ThemeChoice = currentlyDark ? "light" : "dark";
+  const toggle = useCallback(() => {
+    const next = isDark ? "light" : "dark";
     localStorage.setItem(THEME_STORAGE_KEY, next);
-    apply(next);
+    const dark = next === "dark";
+    document.documentElement.classList.toggle("dark", dark);
+    document.documentElement.style.colorScheme = dark ? "dark" : "light";
     window.dispatchEvent(new Event("coolspot-theme-change"));
-  }, []);
+  }, [isDark]);
 
-  const Icon = choice === "light" ? Sun : choice === "dark" ? Moon : Monitor;
+  const Icon = isDark ? Moon : Sun;
 
   return (
     <button
       type="button"
-      onClick={cycle}
-      aria-label={`${LABELS[choice]}. Activate to change.`}
-      title={LABELS[choice]}
+      onClick={toggle}
+      aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+      title={isDark ? "Switch to light theme" : "Switch to dark theme"}
       className={[
         "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
         "text-muted transition-colors hover:bg-surface-2 hover:text-text",

@@ -306,6 +306,16 @@ h6 {
 .cs-popup-by:hover {
   text-decoration: underline;
 }
+.cs-popup-edit {
+  display: block;
+  margin-top: 6px;
+  color: var(--accent);
+  font-size: 12px;
+  text-decoration: none;
+}
+.cs-popup-edit:hover {
+  text-decoration: underline;
+}
 
 /* Circular category pin (Leaflet). Colour is set inline from the category data. */
 .cs-pin {

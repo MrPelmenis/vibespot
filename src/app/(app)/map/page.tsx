@@ -1,5 +1,6 @@
 import { MapViewClient } from "@/components/map/MapViewClient";
 import { SpotCard } from "@/components/SpotCard";
+import { getSession } from "@/lib/session";
 import { listCategories, listSpotsInBbox } from "@/lib/spots";
 
 export const metadata = {
@@ -17,10 +18,13 @@ export default async function MapPage({
   searchParams: Promise<{ lat?: string; lng?: string; zoom?: string }>;
 }) {
   const { lat, lng, zoom } = await searchParams;
-  const [categories, initialSpots] = await Promise.all([
+  const [categories, initialSpots, session] = await Promise.all([
     listCategories(),
     listSpotsInBbox({ ...RIGA_BBOX, limit: 200 }),
+    getSession(),
   ]);
+  const viewerId = session?.userId ? Number(session.userId) : null;
+  const isAdmin = session?.isAdmin === true;
 
   const latN = Number(lat);
   const lngN = Number(lng);
@@ -37,6 +41,8 @@ export default async function MapPage({
           center={center}
           zoom={initialZoom}
           reset={hasTarget}
+          viewerId={viewerId}
+          isAdmin={isAdmin}
         />
       </div>
 

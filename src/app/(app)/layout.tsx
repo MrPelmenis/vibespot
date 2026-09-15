@@ -13,7 +13,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const session = await getSession();
 
   return (
-    <AppShell nickname={session?.nickname ?? null} isSignedIn={Boolean(session)}>
+    <AppShell
+      nickname={session?.nickname ?? null}
+      avatarPath={session?.avatarPath ?? null}
+      isSignedIn={Boolean(session)}
+    >
       {children}
     </AppShell>
   );

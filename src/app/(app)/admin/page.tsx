@@ -1,6 +1,19 @@
-import { AdminPanel, type ReportRow, type RequestRow } from "@/components/admin/AdminPanel";
+import {
+  AdminPanel,
+  type AdminCategory,
+  type AdminUser,
+  type ReportRow,
+  type RequestRow,
+  type ReviewRow,
+} from "@/components/admin/AdminPanel";
 import { Card, CardBody, CardKicker, CardTitle } from "@/components/ui/Card";
-import { listReports, listSpotRequests } from "@/lib/admin";
+import {
+  listAdminCategories,
+  listAdminUsers,
+  listRecentReviews,
+  listReports,
+  listSpotRequests,
+} from "@/lib/admin";
 import { getSession } from "@/lib/session";
 
 export const metadata = {
@@ -29,7 +42,13 @@ export default async function AdminPage() {
     );
   }
 
-  const [reports, requests] = await Promise.all([listReports("open"), listSpotRequests("open")]);
+  const [reports, requests, users, categories, reviews] = await Promise.all([
+    listReports("open"),
+    listSpotRequests("open"),
+    listAdminUsers(),
+    listAdminCategories(),
+    listRecentReviews(50),
+  ]);
 
   const reportRows: ReportRow[] = reports.map((r) => ({
     id: r.id,
@@ -49,6 +68,38 @@ export default async function AdminPage() {
     requesterNickname: r.requester_nickname,
     createdAt: r.created_at.toISOString(),
   }));
+  const userRows: AdminUser[] = users.map((u) => ({
+    id: u.id,
+    nickname: u.nickname,
+    email: u.email,
+    isAdmin: u.is_admin,
+    isDeleted: u.is_deleted,
+  }));
+  const categoryRows: AdminCategory[] = categories.map((c) => ({
+    id: c.id,
+    slug: c.slug,
+    name: c.name,
+    color: c.color,
+    icon: c.icon,
+  }));
+  const reviewRows: ReviewRow[] = reviews.map((r) => ({
+    id: r.id,
+    spotId: r.spot_id,
+    spotName: r.spot_name,
+    spotSlug: r.spot_slug,
+    authorNickname: r.author_nickname,
+    rating: r.rating,
+    body: r.body,
+    createdAt: r.created_at.toISOString(),
+  }));
 
-  return <AdminPanel reports={reportRows} requests={requestRows} />;
+  return (
+    <AdminPanel
+      reports={reportRows}
+      requests={requestRows}
+      users={userRows}
+      categories={categoryRows}
+      reviews={reviewRows}
+    />
+  );
 }

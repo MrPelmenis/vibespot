@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -36,7 +35,7 @@ const USER_ICON = L.divIcon({
   iconAnchor: [8, 8],
 });
 
-function popupElement(spot: SpotSummary): HTMLElement {
+function popupElement(spot: SpotSummary, viewerId: number | null, isAdmin: boolean): HTMLElement {
   const wrap = document.createElement("div");
   wrap.className = "cs-popup";
 
@@ -77,6 +76,14 @@ function popupElement(spot: SpotSummary): HTMLElement {
     meta.appendChild(name);
   }
   wrap.appendChild(meta);
+
+  if (isAdmin || (viewerId != null && spot.createdBy === viewerId)) {
+    const edit = document.createElement("a");
+    edit.href = `/spots/${spot.id}/edit`;
+    edit.className = "cs-popup-edit";
+    edit.textContent = "Edit this spot";
+    wrap.appendChild(edit);
+  }
   return wrap;
 }
 
@@ -87,9 +94,20 @@ export type MapViewProps = {
   zoom: number;
   /** Ignore the saved map state and use `center`/`zoom` (used by "View on map"). */
   reset?: boolean;
+  /** Current viewer, so popups can offer an "Edit" link on owned spots. */
+  viewerId?: number | null;
+  isAdmin?: boolean;
 };
 
-export function MapView({ initialSpots, categories, center, zoom, reset }: MapViewProps) {
+export function MapView({
+  initialSpots,
+  categories,
+  center,
+  zoom,
+  reset,
+  viewerId = null,
+  isAdmin = false,
+}: MapViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);
@@ -182,10 +200,10 @@ export function MapView({ initialSpots, categories, center, zoom, reset }: MapVi
     layer.clearLayers();
     for (const spot of spots) {
       L.marker([spot.lat, spot.lng], { icon: markerIcon(spot) })
-        .bindPopup(popupElement(spot), { closeButton: false, offset: L.point(0, -14) })
+        .bindPopup(popupElement(spot, viewerId, isAdmin), { closeButton: false, offset: L.point(0, -14) })
         .addTo(layer);
     }
-  }, [spots]);
+  }, [spots, viewerId, isAdmin]);
 
   function selectCategory(id: number | null) {
     activeCategoryRef.current = id;
@@ -353,49 +371,16 @@ export function MapView({ initialSpots, categories, center, zoom, reset }: MapVi
         </div>
       ) : null}
 
-      {/* Bottom strip */}
+      {/* Bottom: just the count badge + empty state (no redundant card list). */}
       <div className="pointer-events-auto absolute inset-x-2 bottom-2 z-10">
-        <p className="mb-1.5 inline-block rounded-full bg-surface px-3 py-1 text-[12px] font-semibold text-text shadow-md">
+        <p className="inline-block rounded-full bg-surface px-3 py-1 text-[12px] font-semibold text-text shadow-md">
           {spots.length} {spots.length === 1 ? "spot" : "spots"} in view
         </p>
-        {spots.length > 0 ? (
-          <ul className="flex gap-2 overflow-x-auto pb-1">
-            {spots.map((spot) => (
-              <li key={spot.id} className="shrink-0">
-                <Link
-                  href={`/spot/${spot.slug}`}
-                  className="flex w-40 items-center gap-2 rounded-md border border-line bg-surface p-2 shadow-md transition-colors hover:bg-surface-2"
-                >
-                  {spot.media[0] ? (
-                    <SpotImage
-                      url={spot.media[0].url}
-                      thumbUrl={spot.media[0].thumbUrl}
-                      width={spot.media[0].width}
-                      height={spot.media[0].height}
-                      alt={`${spot.name} — cover photo`}
-                      className="h-9 w-9 shrink-0 rounded-md object-cover washed"
-                    />
-                  ) : (
-                    <span
-                      className="h-9 w-9 shrink-0 rounded-md"
-                      style={{ backgroundColor: `${spot.primaryCategory?.color ?? "#7a7f87"}1f` }}
-                    />
-                  )}
-                  <span className="min-w-0">
-                    <span className="block truncate text-[13px] font-medium text-text">{spot.name}</span>
-                    <span className="block truncate text-[11px] text-muted">
-                      {spot.primaryCategory?.name ?? ""}
-                    </span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="rounded-md border border-line bg-surface px-3 py-2 text-[13px] text-muted shadow-md">
+        {spots.length === 0 ? (
+          <p className="mt-1.5 rounded-md border border-line bg-surface px-3 py-2 text-[13px] text-muted shadow-md">
             No spots in this area yet — pan around, or be the first to add one.
           </p>
-        )}
+        ) : null}
       </div>
     </div>
   );

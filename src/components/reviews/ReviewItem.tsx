@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { MediaGallery } from "@/components/MediaGallery";
+import { ReportButton } from "@/components/ReportButton";
 import { StarRating } from "@/components/StarRating";
+import { AdminReviewControls } from "@/components/admin/AdminReviewControls";
 import type { ReviewSummary } from "@/lib/types";
 import { ReplyForm } from "@/components/reviews/ReplyForm";
 
@@ -10,7 +12,15 @@ function avatarUrl(path: string | null): string | null {
 }
 
 /** A single review row: stars, author, body, photos/video and replies. */
-export function ReviewItem({ review, isSignedIn }: { review: ReviewSummary; isSignedIn: boolean }) {
+export function ReviewItem({
+  review,
+  isSignedIn,
+  isAdmin = false,
+}: {
+  review: ReviewSummary;
+  isSignedIn: boolean;
+  isAdmin?: boolean;
+}) {
   const avatar = avatarUrl(review.avatarPath);
 
   return (
@@ -95,6 +105,17 @@ export function ReviewItem({ review, isSignedIn }: { review: ReviewSummary; isSi
           <ReplyForm reviewId={review.id} />
         </div>
       ) : null}
+
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <ReportButton targetType="review" targetId={review.id} />
+        {isAdmin ? (
+          <AdminReviewControls
+            reviewId={review.id}
+            initialRating={review.rating}
+            initialBody={review.body}
+          />
+        ) : null}
+      </div>
     </li>
   );
 }

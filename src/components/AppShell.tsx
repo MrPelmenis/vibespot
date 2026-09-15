@@ -17,10 +17,12 @@ import { AccountControls } from "@/components/AccountControls";
  */
 export function AppShell({
   nickname,
+  avatarPath,
   isSignedIn,
   children,
 }: {
   nickname?: string | null;
+  avatarPath?: string | null;
   isSignedIn: boolean;
   children: React.ReactNode;
 }) {
@@ -30,11 +32,14 @@ export function AppShell({
   return (
     <div className="flex min-h-dvh bg-bg">
       <Sidebar
+        nickname={nickname}
+        avatarPath={avatarPath}
+        isSignedIn={isSignedIn}
         authSlot={<AccountControls isSignedIn={isSignedIn} nickname={nickname} compact />}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar nickname={nickname} />
+        <TopBar nickname={nickname} avatarPath={avatarPath} isSignedIn={isSignedIn} />
 
         <main
           className={

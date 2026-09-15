@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS, isActive } from "@/lib/nav";
+import { avatarUrl } from "@/lib/avatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 /**
@@ -10,8 +11,19 @@ import { ThemeToggle } from "@/components/ThemeToggle";
  * persistent left sidebar. This is the "extend the mobile design to desktop"
  * decision: same information architecture, layout adapted.
  */
-export function Sidebar({ authSlot }: { authSlot?: React.ReactNode }) {
+export function Sidebar({
+  authSlot,
+  nickname,
+  avatarPath,
+  isSignedIn,
+}: {
+  authSlot?: React.ReactNode;
+  nickname?: string | null;
+  avatarPath?: string | null;
+  isSignedIn?: boolean;
+}) {
   const pathname = usePathname();
+  const avatar = avatarUrl(avatarPath ?? null);
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-surface px-3 py-4 md:flex">
@@ -58,9 +70,27 @@ export function Sidebar({ authSlot }: { authSlot?: React.ReactNode }) {
         </ul>
       </nav>
 
-      <div className="mt-4 flex items-center gap-2 border-t border-line pt-3">
-        <ThemeToggle />
-        {authSlot}
+      <div className="mt-4 border-t border-line pt-3">
+        {isSignedIn ? (
+          <Link
+            href="/profile"
+            className="mb-2 flex items-center gap-2.5 rounded-md px-1 py-1 hover:bg-surface-2"
+          >
+            {avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatar} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
+            ) : (
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-tint font-heading text-[13px] text-accent">
+                {(nickname ?? "?").charAt(0).toUpperCase()}
+              </span>
+            )}
+            <span className="truncate text-[13px] font-medium text-text">{nickname}</span>
+          </Link>
+        ) : null}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          {authSlot}
+        </div>
       </div>
     </aside>
   );

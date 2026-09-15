@@ -22,6 +22,7 @@ export function ProfileSettings({
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const avatar = avatarUrl(avatarPath);
 
   async function save() {
@@ -135,23 +136,40 @@ export function ProfileSettings({
             <Download size={14} strokeWidth={2.75} aria-hidden="true" />
             Download my data
           </a>
-          <form
-            action="/api/profile/delete"
-            method="post"
-            onSubmit={(event) => {
-              if (!window.confirm("Delete your account? Your spots and reviews stay, but your identity is removed.")) {
-                event.preventDefault();
-              }
-            }}
-          >
+          {confirmingDelete ? (
+            <div className="rounded-md border border-line bg-surface-2 p-3">
+              <p className="text-[13px] text-text">
+                Delete your account? Your spots and reviews stay, but your identity is removed.
+                This can&apos;t be undone.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <form action="/api/profile/delete" method="post">
+                  <button
+                    type="submit"
+                    className="rounded-full bg-danger px-3 py-1 text-[13px] font-medium text-danger-fg"
+                  >
+                    Yes, delete my account
+                  </button>
+                </form>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingDelete(false)}
+                  className="rounded-full px-3 py-1 text-[13px] text-muted hover:text-text"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
             <button
-              type="submit"
+              type="button"
+              onClick={() => setConfirmingDelete(true)}
               className="inline-flex items-center gap-1.5 text-[13px] text-danger hover:underline"
             >
               <Trash2 size={14} strokeWidth={2.75} aria-hidden="true" />
               Delete my account
             </button>
-          </form>
+          )}
         </div>
       </div>
     </div>

@@ -86,6 +86,111 @@ export async function adminDeleteSpot(spotId: number): Promise<void> {
   }
 }
 
+export async function listAdminUsers() {
+  const { rows } = await pool.query(
+    `SELECT id, nickname, email, is_admin, is_deleted, created_at
+     FROM users ORDER BY id`,
+  );
+  return rows;
+}
+
+export async function adminSetAdmin(userId: number, isAdmin: boolean): Promise<void> {
+  await pool.query(`UPDATE users SET is_admin = $1 WHERE id = $2`, [isAdmin, userId]);
+}
+
+export async function listAdminCategories() {
+  const { rows } = await pool.query(
+    `SELECT id, slug, name, color, icon, position FROM categories ORDER BY position, id`,
+  );
+  return rows;
+}
+
+export async function adminCreateCategory(input: {
+  slug: string;
+  name: string;
+  color: string;
+  icon: string;
+}): Promise<void> {
+  await pool.query(
+    `INSERT INTO categories (slug, name, color, icon, position)
+     VALUES ($1, $2, $3, $4, (SELECT COALESCE(MAX(position), -1) + 1 FROM categories))`,
+    [input.slug, input.name, input.color, input.icon],
+  );
+}
+
+export async function adminDeleteCategory(categoryId: number): Promise<void> {
+  await pool.query(`DELETE FROM spot_categories WHERE category_id = $1`, [categoryId]);
+  await pool.query(`DELETE FROM categories WHERE id = $1`, [categoryId]);
+}
+
+export async function listRecentReviews(limit = 50) {
+  const { rows } = await pool.query(
+    `SELECT r.id, r.rating, r.body, r.created_at,
+            s.id AS spot_id, s.name AS spot_name, s.slug AS spot_slug,
+            u.nickname AS author_nickname
+     FROM reviews r
+     JOIN spots s ON s.id = r.spot_id
+     LEFT JOIN users u ON u.id = r.user_id
+     ORDER BY r.created_at DESC LIMIT $1`,
+    [limit],
+  );
+  return rows;
+}
+
+/** Admin edit of a review: rating + body, then recompute the spot's stats. */
+export async function adminUpdateReview(
+  reviewId: number,
+  rating: number,
+  body: string | null,
+): Promise<void> {
+  await pool.query(`UPDATE reviews SET rating = $1, body = $2 WHERE id = $3`, [
+    rating,
+    body,
+    reviewId,
+  ]);
+  const spot = await pool.query<{ spot_id: number }>(
+    `SELECT spot_id FROM reviews WHERE id = $1`,
+    [reviewId],
+  );
+  if (spot.rows.length > 0) {
+    await pool.query(
+      `UPDATE spots SET
+         rating_avg   = (SELECT AVG(rating) FROM reviews WHERE spot_id = $1),
+         rating_count = (SELECT COUNT(*)::int FROM reviews WHERE spot_id = $1),
+         review_count = (SELECT COUNT(*)::int FROM reviews WHERE spot_id = $1)
+       WHERE id = $1`,
+      [spot.rows[0].spot_id],
+    );
+  }
+}
+
+/** Admin hard-delete of a review: unlink its media files, cascade the row, recompute stats. */
+export async function adminDeleteReview(reviewId: number): Promise<void> {
+  const media = await pool.query<{ path: string; thumb_path: string | null }>(
+    `SELECT path, thumb_path FROM review_media WHERE review_id = $1`,
+    [reviewId],
+  );
+  const spot = await pool.query<{ spot_id: number }>(
+    `SELECT spot_id FROM reviews WHERE id = $1`,
+    [reviewId],
+  );
+  if (spot.rows.length === 0) throw new HttpError(404, "Review not found");
+  const spotId = spot.rows[0].spot_id;
+
+  await pool.query(`DELETE FROM reviews WHERE id = $1`, [reviewId]);
+  for (const m of media.rows) {
+    await deleteMediaFile({ path: m.path, thumbPath: m.thumb_path ?? "" });
+  }
+  await pool.query(
+    `UPDATE spots SET
+       rating_avg   = (SELECT AVG(rating) FROM reviews WHERE spot_id = $1),
+       rating_count = (SELECT COUNT(*)::int FROM reviews WHERE spot_id = $1),
+       review_count = (SELECT COUNT(*)::int FROM reviews WHERE spot_id = $1)
+     WHERE id = $1`,
+    [spotId],
+  );
+}
+
 /** Merge `sourceId` into `targetId`: move reviews/media/visits/saves/categories, then delete source. */
 export async function mergeSpots(targetId: number, sourceId: number): Promise<void> {
   if (targetId === sourceId) throw new HttpError(400, "Cannot merge a spot into itself");

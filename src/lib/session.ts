@@ -112,7 +112,16 @@ export async function getSession(): Promise<Session | null> {
 
 export async function destroySession(): Promise<void> {
     const store = await cookies();
-    store.delete(COOKIE_NAME);
+    // Delete with the SAME domain the cookie was set with, otherwise the browser won't
+    // match a domain-scoped cookie and the session survives the "sign out".
+    store.set(COOKIE_NAME, "", {
+        httpOnly: true,
+        secure: secureCookies(),
+        sameSite: "lax",
+        path: "/",
+        maxAge: 0,
+        domain: cookieDomain(),
+    });
 }
 
 export const SESSION_COOKIE_NAME = COOKIE_NAME;

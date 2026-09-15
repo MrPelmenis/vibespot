@@ -6,7 +6,7 @@ import {
   requestOrigin,
   verifyGoogleIdToken,
 } from "@/lib/google";
-import { createSession } from "@/lib/session";
+import { cookieDomain, createSession, secureCookies } from "@/lib/session";
 import { upsertUserByIdentity } from "@/lib/users";
 
 /**
@@ -83,8 +83,7 @@ export async function GET(request: NextRequest) {
   }
 
   const response = NextResponse.redirect(new URL("/", origin));
-  response.cookies.delete("coolspot_oauth_state");
-  response.cookies.delete("coolspot_oauth_verifier");
+  deleteOauthCookies(response);
   return response;
 }
 
@@ -92,7 +91,19 @@ function failure(origin: string, reason: string) {
   const url = new URL("/signin", origin);
   url.searchParams.set("error", reason);
   const response = NextResponse.redirect(url);
-  response.cookies.delete("coolspot_oauth_state");
-  response.cookies.delete("coolspot_oauth_verifier");
+  deleteOauthCookies(response);
   return response;
+}
+
+function deleteOauthCookies(response: NextResponse): void {
+  const options = {
+    httpOnly: true,
+    secure: secureCookies(),
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 0,
+    domain: cookieDomain(),
+  };
+  response.cookies.set("coolspot_oauth_state", "", options);
+  response.cookies.set("coolspot_oauth_verifier", "", options);
 }

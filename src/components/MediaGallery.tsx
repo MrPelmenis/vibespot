@@ -24,6 +24,11 @@ function playable(items: GalleryItem[]): GalleryItem[] {
 type ViewerContextValue = { open: (id: string) => void };
 const ViewerContext = createContext<ViewerContextValue>({ open: () => {} });
 
+/** Lets a non-gallery thumbnail (e.g. the fallback cover) open the shared viewer. */
+export function useMediaViewer(): ViewerContextValue {
+  return useContext(ViewerContext);
+}
+
 /**
  * Holds the combined media list and the single fullscreen viewer for a page, so each
  * gallery (main + every review) displays separately but they all navigate one shared

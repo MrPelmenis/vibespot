@@ -5,6 +5,7 @@ import { ExternalLink, Map as MapIcon, Pencil } from "lucide-react";
 import { CategoryChip } from "@/components/CategoryChip";
 import { SortLink } from "@/components/FilterChips";
 import { MediaGallery, MediaViewerProvider } from "@/components/MediaGallery";
+import { CoverThumb } from "@/components/CoverThumb";
 import { ReportButton } from "@/components/ReportButton";
 import { StarRating } from "@/components/StarRating";
 import { ButtonLink } from "@/components/ui/Button";
@@ -99,6 +100,21 @@ export default async function SpotPage({
     ),
   ];
 
+  // A clickable cover for spots with no own media — opens the shared viewer at that
+  // review photo.
+  const coverItem = spot.cover
+    ? {
+        id: `${spot.cover.fromReview ? "review" : "spot"}-${spot.cover.id}`,
+        kind: "image" as const,
+        url: spot.cover.url,
+        thumbUrl: spot.cover.thumbUrl,
+        width: spot.cover.width,
+        height: spot.cover.height,
+        alt: `${spot.name} — cover photo`,
+        status: "ready",
+      }
+    : null;
+
   return (
     <article className="mx-auto max-w-[720px]">
       <MediaViewerProvider items={galleryItems}>
@@ -143,14 +159,17 @@ export default async function SpotPage({
         <div className="mt-4">
           <MediaGallery items={mainItems} />
         </div>
-      ) : spot.cover ? (
+      ) : coverItem ? (
         <div className="mt-4">
-          {/* Fallback: spot has no own photos — show the top review's photo as cover. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={spot.cover.url}
-            alt={`${spot.name} — cover photo`}
-            className="aspect-video w-full rounded-md border border-line object-cover washed"
+          {/* Fallback: spot has no own photos — show the top review's photo as a
+              clickable cover that opens the shared viewer. */}
+          <CoverThumb
+            id={coverItem.id}
+            url={coverItem.url}
+            thumbUrl={coverItem.thumbUrl}
+            width={coverItem.width}
+            height={coverItem.height}
+            alt={coverItem.alt}
           />
         </div>
       ) : (

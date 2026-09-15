@@ -3,6 +3,7 @@ import { Star } from "lucide-react";
 import { CategoryChip } from "@/components/CategoryChip";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import { SpotImage } from "@/components/SpotImage";
+import { formatRelativeTime } from "@/lib/format";
 import type { SpotSummary } from "@/lib/types";
 
 /**
@@ -66,10 +67,14 @@ export function SpotCard({ spot }: { spot: SpotSummary }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={creatorAvatar} alt="" width={14} height={14} className="h-3.5 w-3.5 rounded-full object-cover" />
               ) : null}
-              <span className="truncate">by {spot.creatorNickname}</span>
+              <span className="truncate">
+                by {spot.creatorNickname} · {formatRelativeTime(spot.createdAt)}
+              </span>
             </p>
           ) : (
-            <p className="mt-0.5 text-[11px] text-faint">Community spot</p>
+            <p className="mt-0.5 text-[11px] text-faint">
+              Community spot · {formatRelativeTime(spot.createdAt)}
+            </p>
           )}
           <div className="mt-1.5 flex flex-wrap gap-1">
             {spot.categories.map((c) => (

@@ -143,17 +143,21 @@ async function hydrate(rows: SpotRow[]): Promise<SpotSummary[]> {
     const media = mediaBySpot.get(id) ?? [];
     return !media.some((m) => m.kind === "image");
   });
-  const reviewCoverBySpot = new Map<number, { url: string; thumbUrl: string; width: number; height: number }>();
+  const reviewCoverBySpot = new Map<
+    number,
+    { id: number; url: string; thumbUrl: string; width: number; height: number }
+  >();
   if (spotsWithoutImage.length > 0) {
     const { rows: reviewCoverRows } = await pool.query<{
       spot_id: number;
+      media_id: number;
       path: string;
       thumb_path: string | null;
       width: number | null;
       height: number | null;
     }>(
       `SELECT DISTINCT ON (r.spot_id)
-         r.spot_id, rm.path, rm.thumb_path, rm.width, rm.height
+         r.spot_id, rm.id AS media_id, rm.path, rm.thumb_path, rm.width, rm.height
        FROM review_media rm
        JOIN reviews r ON r.id = rm.review_id
        WHERE r.spot_id = ANY($1::bigint[]) AND rm.kind = 'image'
@@ -162,6 +166,7 @@ async function hydrate(rows: SpotRow[]): Promise<SpotSummary[]> {
     );
     for (const rc of reviewCoverRows) {
       reviewCoverBySpot.set(rc.spot_id, {
+        id: rc.media_id,
         url: `/media/${rc.path}`,
         thumbUrl: `/media/${rc.thumb_path ?? rc.path}`,
         width: rc.width ?? 0,
@@ -174,9 +179,12 @@ async function hydrate(rows: SpotRow[]): Promise<SpotSummary[]> {
     const cats = catsBySpot.get(r.id) ?? [];
     const media = mediaBySpot.get(r.id) ?? [];
     const ownImage = media.find((m) => m.kind === "image");
+    const reviewCover = reviewCoverBySpot.get(r.id);
     const cover = ownImage
-      ? { url: ownImage.url, thumbUrl: ownImage.thumbUrl, width: ownImage.width, height: ownImage.height }
-      : reviewCoverBySpot.get(r.id) ?? null;
+      ? { id: ownImage.id, fromReview: false, url: ownImage.url, thumbUrl: ownImage.thumbUrl, width: ownImage.width, height: ownImage.height }
+      : reviewCover
+        ? { id: reviewCover.id, fromReview: true, url: reviewCover.url, thumbUrl: reviewCover.thumbUrl, width: reviewCover.width, height: reviewCover.height }
+        : null;
     return {
       id: r.id,
       slug: r.slug,

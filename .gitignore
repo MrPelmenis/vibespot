@@ -2,6 +2,12 @@ data
 .env.local
 node_modules
 
+main_db.db
+
+# legacy migration sources — never commit user uploads or their database copies
+legacy_uploads/
+*.db
+
 # dependencies
 /node_modules
 /.pnp

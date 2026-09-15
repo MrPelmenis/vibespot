@@ -103,11 +103,17 @@ psql -d coolspot -c "CREATE EXTENSION IF NOT EXISTS postgis; CREATE EXTENSION IF
 # 5. Run the migrations and seed the 15 categories
 npm run migrate
 
-# 6. Import the 11 legacy spots (optional but recommended for local review)
-#    reads the legacy SQLite DB + uploads tree from ../ (set LEGACY_DIR to override)
+# 6. Import the legacy data (optional but recommended for local review)
+#    Imports EVERY spot, image and user found in the legacy SQLite DB.
+#    Sources are auto-detected (./main_db.db and ./legacy_uploads/spot_images);
+#    override with LEGACY_DB=… and LEGACY_UPLOADS=… . Preview first:
+npm run import:legacy -- --dry-run
 npm run import:legacy
 
-# 7. Run it
+# 7. Fill the imported spots' address/city metadata (reverse geocoding)
+npm run backfill:addresses
+
+# 8. Run it
 npm run dev            # http://localhost:3000
 ```
 
@@ -243,14 +249,27 @@ sudo -u coolspot npm run migrate
 sudo -u coolspot npm run build
 ```
 
-The legacy import is optional and needs the old SQLite database + `uploads/` tree:
+The legacy import is optional and needs the old SQLite database + `uploads/spot_images/` tree.
+It imports every spot, image and user in the source database — there is no id filter.
 
 ```bash
-# Only if you have the legacy data. Point LEGACY_DIR at the old repo and run once:
-sudo -u coolspot LEGACY_DIR=/path/to/legacy-repo npm run import:legacy
+# Only if you have the legacy data. Put the DB at ./main_db.db and the images at
+# ./legacy_uploads/spot_images/, or point at them explicitly:
+sudo -u coolspot \
+  LEGACY_DB=/path/to/main_db.db \
+  LEGACY_UPLOADS=/path/to/uploads/spot_images \
+  npm run import:legacy
 ```
 
-If you're starting fresh (no legacy data), skip it — `npm run migrate` already seeds the 15
+It is safe to re-run: users are matched on email, spots on slug, images on `(spot, position)`,
+so a second run imports only what is still missing. If any referenced image file is absent it
+lists them and exits non-zero instead of quietly skipping them — copy the tree over and re-run.
+
+Legacy comments and likes are deliberately **not** imported: reviews require a 1–5 star rating
+and one review per user per spot, so comments cannot become reviews without inventing ratings.
+After importing, fill in addresses with `npm run backfill:addresses`.
+
+If you're starting fresh (no legacy data), skip both — `npm run migrate` already seeds the 15
 categories and the site works empty.
 
 ### 6. systemd unit

@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
-import { THEME_STORAGE_KEY } from "@/lib/theme";
+import { THEME_STORAGE_KEY, type ThemeChoice } from "@/lib/theme";
 
 function subscribe(onChange: () => void) {
-  // Re-read when the stored preference changes, from this or another tab.
   window.addEventListener("storage", onChange);
   window.addEventListener("coolspot-theme-change", onChange);
   const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -17,26 +16,43 @@ function subscribe(onChange: () => void) {
   };
 }
 
-/** The *visible* theme — reads the class the boot script already applied, so the icon
- *  always matches reality and there is no confusing "system" (PC) state to show. */
+function readChoice(): ThemeChoice {
+  const stored = localStorage.getItem(THEME_STORAGE_KEY);
+  return stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+}
+
+/** The *effective* dark state — from the stored choice, falling back to the OS. */
 function readIsDark(): boolean {
-  return document.documentElement.classList.contains("dark");
+  const choice = readChoice();
+  if (choice === "dark") return true;
+  if (choice === "light") return false;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+function applyTheme(choice: ThemeChoice): void {
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const dark = choice === "dark" || (choice === "system" && prefersDark);
+  document.documentElement.classList.toggle("dark", dark);
+  document.documentElement.style.colorScheme = dark ? "dark" : "light";
 }
 
 /**
  * A plain light/dark toggle. The stored value may still be "system" from before, but
- * the toggle always lands on an explicit light/dark — the icon simply reflects what is
- * currently on screen.
+ * the toggle always lands on an explicit light/dark.
  */
 export function ThemeToggle({ className }: { className?: string }) {
   const isDark = useSyncExternalStore(subscribe, readIsDark, () => false);
 
+  // Defensive: re-apply the stored theme on mount. The pre-paint boot script normally
+  // does this already (so no flash); this just covers any page that skipped it.
+  useEffect(() => {
+    applyTheme(readChoice());
+  }, []);
+
   const toggle = useCallback(() => {
-    const next = isDark ? "light" : "dark";
+    const next: ThemeChoice = isDark ? "light" : "dark";
     localStorage.setItem(THEME_STORAGE_KEY, next);
-    const dark = next === "dark";
-    document.documentElement.classList.toggle("dark", dark);
-    document.documentElement.style.colorScheme = dark ? "dark" : "light";
+    applyTheme(next);
     window.dispatchEvent(new Event("coolspot-theme-change"));
   }, [isDark]);
 

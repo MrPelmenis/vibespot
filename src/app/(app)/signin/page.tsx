@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Card, CardBody, CardKicker, CardTitle } from "@/components/ui/Card";
 import { getSession } from "@/lib/session";
 
@@ -28,6 +29,8 @@ export default async function SignInPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const [{ error }, session] = await Promise.all([searchParams, getSession()]);
+  // Already signed in — don't show "You are signed in" next to an OAuth error.
+  if (session) redirect("/");
   const message = error ? (ERRORS[error] ?? "Sign-in failed. Please try again.") : null;
 
   return (

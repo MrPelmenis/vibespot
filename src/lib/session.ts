@@ -67,11 +67,12 @@ export async function getSession(): Promise<Session | null> {
         // out so every consumer (shell, spot page, /profile, /signin) agrees — otherwise
         // one view says "signed in" while another says "sign in".
         if (typeof payload.userId !== "string" || payload.userId.length === 0) return null;
+        if (typeof payload.nickname !== "string" || payload.nickname.length === 0) return null;
 
         return {
             userId: payload.userId,
             googleSub: payload.googleSub,
-            nickname: typeof payload.nickname === "string" ? payload.nickname : null,
+            nickname: payload.nickname,
             avatarPath: typeof payload.avatarPath === "string" ? payload.avatarPath : null,
             isAdmin: payload.isAdmin === true,
         };

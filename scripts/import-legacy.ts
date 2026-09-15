@@ -42,7 +42,7 @@ for (const name of [".env", ".env.local"]) {
 }
 
 const legacyRoot = path.resolve(process.env.LEGACY_DIR ?? path.resolve(projectRoot, ".."));
-const legacyDbPath = path.join(legacyRoot, "BackEnd", "main_db.db");
+const legacyDbPath = path.join(legacyRoot, "BackEnd","db", "main_db.db");
 const uploadsDir = path.join(legacyRoot, "BackEnd", "uploads", "spot_images");
 
 if (!existsSync(legacyDbPath)) {

@@ -7,6 +7,7 @@
     "build": "next build",
     "migrate": "node scripts/migrate.mjs",
     "import:legacy": "node scripts/import-legacy.ts",
+    "backfill:addresses": "node scripts/backfill-addresses.mjs",
     "start": "next dev",
     "start:prod": "node scripts/start-standalone.mjs",
     "lint": "eslint",

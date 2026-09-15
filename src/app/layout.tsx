@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     shortcut: "/marker.png",
     apple: "/marker.png",
   },
+  verification: {
+    google: "EaUO1Pf1dXAcXZJsH3Nz5GolKelXCLX4aaXdIjW6JsU",
+  },
   openGraph: {
     type: "website",
     siteName: "CoolSpot",
@@ -37,6 +40,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   // Tint the browser chrome to match the active theme.
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f5ead8" },

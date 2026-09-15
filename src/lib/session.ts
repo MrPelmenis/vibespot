@@ -38,6 +38,16 @@ function secret(): Uint8Array {
     return new TextEncoder().encode(value);
 }
 
+/**
+ * Whether auth cookies should be `Secure`. The standalone server always sees plain
+ * HTTP (nginx terminates TLS), so NODE_ENV is the wrong signal — derive it from the
+ * canonical origin instead. This also keeps `npm run start:prod` working over
+ * http://localhost during local testing.
+ */
+export function secureCookies(): boolean {
+    return (process.env.SITE_URL ?? "").startsWith("https://");
+}
+
 export async function createSession(session: Session): Promise<void> {
     const token = await new SignJWT({ ...session })
         .setProtectedHeader({ alg: "HS256" })
@@ -48,7 +58,7 @@ export async function createSession(session: Session): Promise<void> {
     const store = await cookies();
     store.set(COOKIE_NAME, token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: secureCookies(),
         sameSite: "lax",
         path: "/",
         maxAge: MAX_AGE_SECONDS,

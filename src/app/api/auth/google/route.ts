@@ -5,6 +5,7 @@ import {
   redirectUriFor,
   requestOrigin,
 } from "@/lib/google";
+import { secureCookies } from "@/lib/session";
 
 /**
  * Starts the Google sign-in flow.
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
   const response = NextResponse.redirect(authorizeUrl);
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: secureCookies(),
     sameSite: "lax" as const,
     path: "/",
     maxAge: OAUTH_STATE_MAX_AGE_SECONDS,

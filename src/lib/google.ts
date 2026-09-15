@@ -80,5 +80,18 @@ export function requestOrigin(request: NextRequest): string {
   return request.nextUrl.origin;
 }
 
+/** True when `origin` is the same site as `expected`, ignoring a `www.` prefix. */
+export function isSameOrigin(origin: string, expected: string): boolean {
+  try {
+    const a = new URL(origin);
+    const b = new URL(expected);
+    const hostA = a.hostname.replace(/^www\./, "");
+    const hostB = b.hostname.replace(/^www\./, "");
+    return a.protocol === b.protocol && hostA === hostB;
+  } catch {
+    return false;
+  }
+}
+
 /** How long an OAuth `state` cookie stays valid — the whole round trip, nothing more. */
 export const OAUTH_STATE_MAX_AGE_SECONDS = 600;

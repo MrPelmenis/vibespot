@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { requestOrigin } from "@/lib/google";
+import { isSameOrigin, requestOrigin } from "@/lib/google";
 import { destroySession } from "@/lib/session";
 
 /**
@@ -10,7 +10,7 @@ import { destroySession } from "@/lib/session";
  */
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== requestOrigin(request)) {
+  if (origin && !isSameOrigin(origin, requestOrigin(request))) {
     return NextResponse.json({ error: "cross-origin sign-out rejected" }, { status: 403 });
   }
 

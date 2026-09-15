@@ -14,6 +14,13 @@ import type { GoogleIdentity } from "@/lib/google";
  * refreshed; `google_sub` is the stable key and never changes.
  */
 
+/** A user-uploaded avatar lives under `avatars/`; keep it instead of clobbering it
+ *  with the Google profile picture on every sign-in. */
+function preservedAvatar(current: string | null, googlePicture: string | null): string | null {
+  if (current?.startsWith("avatars/")) return current;
+  return googlePicture ?? current;
+}
+
 export async function upsertUserByIdentity(identity: GoogleIdentity) {
   const existing = await db
     .select()
@@ -27,7 +34,7 @@ export async function upsertUserByIdentity(identity: GoogleIdentity) {
       .update(users)
       .set({
         email: identity.email ?? user.email,
-        avatarPath: identity.picture ?? user.avatarPath,
+        avatarPath: preservedAvatar(user.avatarPath, identity.picture),
       })
       .where(eq(users.id, user.id))
       .returning();
@@ -49,7 +56,7 @@ export async function upsertUserByIdentity(identity: GoogleIdentity) {
         .update(users)
         .set({
           googleSub: identity.sub,
-          avatarPath: identity.picture ?? user.avatarPath,
+          avatarPath: preservedAvatar(user.avatarPath, identity.picture),
         })
         .where(eq(users.id, user.id))
         .returning();

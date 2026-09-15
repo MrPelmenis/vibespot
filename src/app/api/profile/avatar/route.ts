@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { errorResponse, formFiles } from "@/lib/api";
 import { pool } from "@/db/client";
 import { deleteAvatarFile, processAndStoreAvatar } from "@/lib/media";
-import { getSession } from "@/lib/session";
+import { createSession, getSession } from "@/lib/session";
 
 /** POST /api/profile/avatar — upload a new profile picture (multipart, `avatar`). */
 export async function POST(request: NextRequest) {
@@ -33,6 +33,9 @@ export async function POST(request: NextRequest) {
 
     const rel = await processAndStoreAvatar(userId, Buffer.from(await files[0].arrayBuffer()));
     await pool.query(`UPDATE users SET avatar_path = $1 WHERE id = $2`, [rel, userId]);
+    // Keep the session cookie's avatar in sync, otherwise the header keeps showing the
+    // old picture until the next sign-in.
+    await createSession({ ...session, avatarPath: rel });
 
     if (oldRel && oldRel.startsWith("avatars/")) {
       await deleteAvatarFile(oldRel);

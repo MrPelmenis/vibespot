@@ -48,6 +48,24 @@ export function secureCookies(): boolean {
     return (process.env.SITE_URL ?? "").startsWith("https://");
 }
 
+/**
+ * Cookie domain: the registrable host from SITE_URL with any leading "www." stripped,
+ * so the session is shared between `coolspot.lv` and `www.coolspot.lv`. Returns
+ * undefined for localhost/IP so the cookie stays host-only there.
+ */
+export function cookieDomain(): string | undefined {
+    const site = process.env.SITE_URL;
+    if (!site) return undefined;
+    try {
+        let host = new URL(site).hostname;
+        if (host === "localhost" || host.startsWith("127.") || host.startsWith("::1")) return undefined;
+        if (host.startsWith("www.")) host = host.slice(4);
+        return host;
+    } catch {
+        return undefined;
+    }
+}
+
 export async function createSession(session: Session): Promise<void> {
     const token = await new SignJWT({ ...session })
         .setProtectedHeader({ alg: "HS256" })
@@ -62,6 +80,7 @@ export async function createSession(session: Session): Promise<void> {
         sameSite: "lax",
         path: "/",
         maxAge: MAX_AGE_SECONDS,
+        domain: cookieDomain(),
     });
 }
 

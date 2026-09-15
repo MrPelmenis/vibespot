@@ -5,7 +5,7 @@ import {
   redirectUriFor,
   requestOrigin,
 } from "@/lib/google";
-import { secureCookies } from "@/lib/session";
+import { cookieDomain, secureCookies } from "@/lib/session";
 
 /**
  * Starts the Google sign-in flow.
@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
     sameSite: "lax" as const,
     path: "/",
     maxAge: OAUTH_STATE_MAX_AGE_SECONDS,
+    domain: cookieDomain(),
   };
   response.cookies.set("coolspot_oauth_state", state, cookieOptions);
   response.cookies.set("coolspot_oauth_verifier", verifier, cookieOptions);

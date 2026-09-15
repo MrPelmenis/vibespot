@@ -16,7 +16,7 @@ function avatarUrl(path: string | null): string | null {
 
 export function SpotCard({ spot }: { spot: SpotSummary }) {
   const primary = spot.primaryCategory;
-  const cover = spot.media[0];
+  const cover = spot.cover;
   const creatorAvatar = avatarUrl(spot.creatorAvatar);
   const hasRating = spot.reviewCount > 0 && spot.ratingAvg != null;
   const rating = hasRating ? Number(spot.ratingAvg).toFixed(1) : null;

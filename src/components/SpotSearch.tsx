@@ -133,12 +133,12 @@ export function SpotSearch() {
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-2.5 px-3 py-2 transition-colors hover:bg-surface-2"
                   >
-                    {spot.media[0] ? (
+                    {spot.cover ? (
                       <SpotImage
-                        url={spot.media[0].url}
-                        thumbUrl={spot.media[0].thumbUrl}
-                        width={spot.media[0].width}
-                        height={spot.media[0].height}
+                        url={spot.cover.url}
+                        thumbUrl={spot.cover.thumbUrl}
+                        width={spot.cover.width}
+                        height={spot.cover.height}
                         alt=""
                         className="h-9 w-9 shrink-0 rounded-md object-cover washed"
                       />

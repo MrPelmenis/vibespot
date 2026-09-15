@@ -39,11 +39,11 @@ function popupElement(spot: SpotSummary, viewerId: number | null, isAdmin: boole
   const wrap = document.createElement("div");
   wrap.className = "cs-popup";
 
-  if (spot.media[0]) {
+  if (spot.cover) {
     const imgLink = document.createElement("a");
     imgLink.href = `/spot/${encodeURIComponent(spot.slug)}`;
     const img = document.createElement("img");
-    img.src = spot.media[0].thumbUrl;
+    img.src = spot.cover.thumbUrl;
     img.alt = "";
     img.className = "cs-popup-img";
     imgLink.appendChild(img);
@@ -303,12 +303,12 @@ export function MapView({
                     onClick={() => chooseSpot(spot)}
                     className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-surface-2"
                   >
-                    {spot.media[0] ? (
+                    {spot.cover ? (
                       <SpotImage
-                        url={spot.media[0].url}
-                        thumbUrl={spot.media[0].thumbUrl}
-                        width={spot.media[0].width}
-                        height={spot.media[0].height}
+                        url={spot.cover.url}
+                        thumbUrl={spot.cover.thumbUrl}
+                        width={spot.cover.width}
+                        height={spot.cover.height}
                         alt=""
                         className="h-9 w-9 shrink-0 rounded-md object-cover washed"
                       />

@@ -137,8 +137,46 @@ async function hydrate(rows: SpotRow[]): Promise<SpotSummary[]> {
     mediaBySpot.set(m.spotId, list);
   }
 
+  // Cover fallback: spots without their own photo use the first photo of the top
+  // review, so cards/map/metadata never show an empty placeholder.
+  const spotsWithoutImage = ids.filter((id) => {
+    const media = mediaBySpot.get(id) ?? [];
+    return !media.some((m) => m.kind === "image");
+  });
+  const reviewCoverBySpot = new Map<number, { url: string; thumbUrl: string; width: number; height: number }>();
+  if (spotsWithoutImage.length > 0) {
+    const { rows: reviewCoverRows } = await pool.query<{
+      spot_id: number;
+      path: string;
+      thumb_path: string | null;
+      width: number | null;
+      height: number | null;
+    }>(
+      `SELECT DISTINCT ON (r.spot_id)
+         r.spot_id, rm.path, rm.thumb_path, rm.width, rm.height
+       FROM review_media rm
+       JOIN reviews r ON r.id = rm.review_id
+       WHERE r.spot_id = ANY($1::bigint[]) AND rm.kind = 'image'
+       ORDER BY r.spot_id, r.created_at DESC, rm.position ASC`,
+      [spotsWithoutImage],
+    );
+    for (const rc of reviewCoverRows) {
+      reviewCoverBySpot.set(rc.spot_id, {
+        url: `/media/${rc.path}`,
+        thumbUrl: `/media/${rc.thumb_path ?? rc.path}`,
+        width: rc.width ?? 0,
+        height: rc.height ?? 0,
+      });
+    }
+  }
+
   return rows.map((r) => {
     const cats = catsBySpot.get(r.id) ?? [];
+    const media = mediaBySpot.get(r.id) ?? [];
+    const ownImage = media.find((m) => m.kind === "image");
+    const cover = ownImage
+      ? { url: ownImage.url, thumbUrl: ownImage.thumbUrl, width: ownImage.width, height: ownImage.height }
+      : reviewCoverBySpot.get(r.id) ?? null;
     return {
       id: r.id,
       slug: r.slug,
@@ -162,7 +200,8 @@ async function hydrate(rows: SpotRow[]): Promise<SpotSummary[]> {
       creatorAvatar: r.creator_avatar,
       categories: cats,
       primaryCategory: cats[0] ?? null,
-      media: mediaBySpot.get(r.id) ?? [],
+      media,
+      cover,
     };
   });
 }

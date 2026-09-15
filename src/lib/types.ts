@@ -48,6 +48,9 @@ export type SpotSummary = {
   categories: CategorySummary[];
   primaryCategory: CategorySummary | null;
   media: SpotMediaSummary[];
+  /** Representative image: the spot's own first photo, else the first photo of the
+   *  top review. Null when there are no photos at all. */
+  cover: { url: string; thumbUrl: string; width: number; height: number } | null;
 };
 
 export type GeocodeResult = {

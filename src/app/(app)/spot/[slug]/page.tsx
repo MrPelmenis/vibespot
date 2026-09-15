@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const base = (process.env.SITE_URL ?? "https://coolspot.lv").replace(/\/$/, "");
   const description = (spot.description ?? `${spot.name} on CoolSpot.`).slice(0, 160);
-  const cover = spot.media[0];
+  const cover = spot.cover;
 
   return {
     title: spot.name,
@@ -142,6 +142,16 @@ export default async function SpotPage({
       {mainItems.length > 0 ? (
         <div className="mt-4">
           <MediaGallery items={mainItems} />
+        </div>
+      ) : spot.cover ? (
+        <div className="mt-4">
+          {/* Fallback: spot has no own photos — show the top review's photo as cover. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={spot.cover.url}
+            alt={`${spot.name} — cover photo`}
+            className="aspect-video w-full rounded-md border border-line object-cover washed"
+          />
         </div>
       ) : (
         <div className="mt-4 flex h-40 items-center justify-center rounded-md border border-line bg-surface-2 text-[13px] text-muted">
